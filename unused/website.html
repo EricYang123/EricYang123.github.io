@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Map</title>
+    <style>
+        /* ── Reset & base ── */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f4f4f0;
+            color: #1a1a1a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 500;
+            margin-bottom: 0.4rem;
+            color: #1a1a1a;
+        }
+
+        #instructions {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 1.25rem;
+        }
+
+        /* ── Map container ── */
+        #map-container {
+            position: relative;
+            width: 100%;
+            max-width: 2000px;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.12);
+            overflow: hidden;
+            background: #dce8f0;
+            user-select: none;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        #map-img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* ── Waypoint pins ── */
+        .waypoint {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+
+        .waypoint-pin {
+            width: 28px;
+            height: 28px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            background: #888;
+            border: 2.5px solid #ccc;
+            transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .waypoint-pin-inner {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            transform: rotate(45deg);
+        }
+
+        /* ── Popup ── */
+        .popup {
+            position: absolute;
+            background: #ffffff;
+            border: 1px solid rgba(0,0,0,0.14);
+            border-radius: 12px;
+            padding: 14px 18px 12px;
+            min-width: 200px;
+            z-index: 10;
+            transform: translate(-50%, calc(-100% - 22px));
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            pointer-events: auto;
+            animation: popup-in 0.15s ease;
+        }
+
+        @keyframes popup-in {
+            from { opacity: 0; transform: translate(-50%, calc(-100% - 14px)); }
+            to   { opacity: 1; transform: translate(-50%, calc(-100% - 22px)); }
+        }
+
+        .popup-arrow {
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 14px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .popup-arrow::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%) rotate(45deg);
+            width: 14px;
+            height: 14px;
+            background: #ffffff;
+            border-right: 1px solid rgba(0,0,0,0.14);
+            border-bottom: 1px solid rgba(0,0,0,0.14);
+        }
+
+        .popup-name {
+            font-size: 15px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .popup-number {
+            font-size: 30px;
+            font-weight: 500;
+            line-height: 1;
+        }
+
+        .popup-unit {
+            font-size: 12px;
+            color: #888;
+            margin-top: 3px;
+        }
+
+        .popup-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            margin-top: 8px;
+        }
+
+        .popup-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .popup-divider {
+            width: 1px;
+            background: rgba(0,0,0,0.1);
+            align-self: stretch;
+        }
+
+        .adj-btn {
+            background: none;
+            border: 1px solid rgba(0,0,0,0.15);
+            border-radius: 6px;
+            width: 28px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 10px;
+            color: #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.1s;
+        }
+
+        .adj-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .num-red  { color: #cc2222; }
+        .num-blue { color: #1a5fcc; }
+        .num-gray { color: #888; }
+    </style>
+</head>
+<body>
+
+    <h1>Interactive Map</h1>
+    <p id="instructions">Click any waypoint to view its data. Click again or click elsewhere to close.</p>
+
+    <div id="map-container">
+        <img
+            id="map-img"
+            src="fast_and_frequent_transit_map-1.png"
+            alt="Map"
+        />
+    </div>
+
+    <script>
+        /*
+        ============================================================
+          WAYPOINTS CONFIGURATION
+        ============================================================
+          Each waypoint object has:
+            id     – unique identifier
+            name   – location name shown in the popup
+            x      – horizontal position as % of image width  (0 = left, 100 = right)
+            y      – vertical position   as % of image height (0 = top,  100 = bottom)
+            value  – Red Team score
+            value2 – Blue Team score
+            unit   – label for value  (e.g. "Red Team")
+            unit2  – label for value2 (e.g. "Blue Team")
+
+          Add, remove, or edit entries freely.
+        ============================================================
+        */
+        const waypoints = [
+            { id: 1, name: "Lougheed",   x: 66.15, y: 39,   value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
+            { id: 2, name: "Burquitlam", x: 69.9,  y: 34.2, value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
+        ];
+
+        const container = document.getElementById('map-container');
+        let activeId = null;
+        let popupEl  = null;
+
+        function formatNumber(n) {
+            return n.toLocaleString();
+        }
+
+        /* Updates the pin's color based on which value is larger */
+        function updatePinColor(wp) {
+            const pin = document.querySelector(`.waypoint[data-id="${wp.id}"] .waypoint-pin`);
+            if (!pin) return;
+            if (wp.value > wp.value2) {
+                pin.style.background   = '#cc2222';
+                pin.style.borderColor  = '#ffaaaa';
+            } else if (wp.value2 > wp.value) {
+                pin.style.background   = '#1a5fcc';
+                pin.style.borderColor  = '#aac4ff';
+            } else {
+                pin.style.background   = '#888';
+                pin.style.borderColor  = '#ccc';
+            }
+        }
+
+        function removePopup() {
+            if (popupEl) { popupEl.remove(); popupEl = null; }
+            document.querySelectorAll('.waypoint').forEach(w => w.classList.remove('active'));
+            activeId = null;
+        }
+
+        function showPopup(wp, pinEl) {
+            removePopup();
+            activeId = wp.id;
+            pinEl.classList.add('active');
+
+            const popup = document.createElement('div');
+            popup.className  = 'popup';
+            popup.style.left = wp.x + '%';
+            popup.style.top  = wp.y + '%';
+
+            function render() {
+                /* Pick number colors based on who's winning */
+                const redClass  = wp.value  > wp.value2 ? 'num-red'  : wp.value2 > wp.value  ? 'num-gray' : 'num-gray';
+                const blueClass = wp.value2 > wp.value  ? 'num-blue' : wp.value  > wp.value2 ? 'num-gray' : 'num-gray';
+
+                popup.innerHTML = `
+                    <div class="popup-name">${wp.name}</div>
+
+                    <div class="popup-row">
+                        <div class="popup-col">
+                            <button class="adj-btn" data-field="value" data-dir="1">▲</button>
+                            <div class="popup-number ${redClass}">${formatNumber(wp.value)}</div>
+                            <button class="adj-btn" data-field="value" data-dir="-1">▼</button>
+                            <div class="popup-unit">${wp.unit}</div>
+                        </div>
+                        <div class="popup-divider"></div>
+                        <div class="popup-col">
+                            <button class="adj-btn" data-field="value2" data-dir="1">▲</button>
+                            <div class="popup-number ${blueClass}">${formatNumber(wp.value2)}</div>
+                            <button class="adj-btn" data-field="value2" data-dir="-1">▼</button>
+                            <div class="popup-unit">${wp.unit2}</div>
+                        </div>
+                    </div>
+
+                    <div class="popup-arrow"></div>
+                `;
+
+                popup.querySelectorAll('.adj-btn').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        e.stopPropagation();
+                        wp[btn.dataset.field] += parseInt(btn.dataset.dir);
+                        render();
+                        updatePinColor(wp);
+                    });
+                });
+            }
+
+            render();
+            container.appendChild(popup);
+            popupEl = popup;
+        }
+
+        /* Build pins */
+        waypoints.forEach(wp => {
+            const el = document.createElement('div');
+            el.className = 'waypoint';
+            el.style.left = wp.x + '%';
+            el.style.top  = wp.y + '%';
+            el.setAttribute('data-id', wp.id);
+            el.setAttribute('title', wp.name);
+            el.innerHTML = `<div class="waypoint-pin"><div class="waypoint-pin-inner"></div></div>`;
+
+            /* Set initial pin color */
+            updatePinColor(wp);
+
+            el.addEventListener('click', e => {
+                e.stopPropagation();
+                if (activeId === wp.id) { removePopup(); return; }
+                showPopup(wp, el);
+            });
+
+            container.appendChild(el);
+        });
+
+        /* Close popup when clicking outside */
+        document.addEventListener('click', removePopup);
+    </script>
+
+</body>
+</html>

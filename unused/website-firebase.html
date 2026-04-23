@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Map</title>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f4f4f0;
+            color: #1a1a1a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 500;
+            margin-bottom: 0.4rem;
+            color: #1a1a1a;
+        }
+
+        #instructions {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 1.25rem;
+        }
+
+        #map-container {
+            position: relative;
+            width: 100%;
+            max-width: 2000px;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.12);
+            overflow: hidden;
+            background: #dce8f0;
+            user-select: none;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        #map-img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .waypoint {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+
+        .waypoint-pin {
+            width: 28px;
+            height: 28px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            background: #888;
+            border: 2.5px solid #ccc;
+            transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .waypoint-pin-inner {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            transform: rotate(45deg);
+        }
+
+        .popup {
+            position: absolute;
+            background: #ffffff;
+            border: 1px solid rgba(0,0,0,0.14);
+            border-radius: 12px;
+            padding: 14px 18px 12px;
+            min-width: 200px;
+            z-index: 10;
+            transform: translate(-50%, calc(-100% - 22px));
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            pointer-events: auto;
+            animation: popup-in 0.15s ease;
+        }
+
+        @keyframes popup-in {
+            from { opacity: 0; transform: translate(-50%, calc(-100% - 14px)); }
+            to   { opacity: 1; transform: translate(-50%, calc(-100% - 22px)); }
+        }
+
+        .popup-arrow {
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 14px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .popup-arrow::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%) rotate(45deg);
+            width: 14px;
+            height: 14px;
+            background: #ffffff;
+            border-right: 1px solid rgba(0,0,0,0.14);
+            border-bottom: 1px solid rgba(0,0,0,0.14);
+        }
+
+        .popup-name {
+            font-size: 15px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .popup-number {
+            font-size: 30px;
+            font-weight: 500;
+            line-height: 1;
+        }
+
+        .popup-unit {
+            font-size: 12px;
+            color: #888;
+            margin-top: 3px;
+        }
+
+        .popup-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            margin-top: 8px;
+        }
+
+        .popup-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .popup-divider {
+            width: 1px;
+            background: rgba(0,0,0,0.1);
+            align-self: stretch;
+        }
+
+        .adj-btn {
+            background: none;
+            border: 1px solid rgba(0,0,0,0.15);
+            border-radius: 6px;
+            width: 28px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 10px;
+            color: #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.1s;
+        }
+
+        .adj-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .num-red  { color: #cc2222; }
+        .num-blue { color: #1a5fcc; }
+        .num-gray { color: #888; }
+
+        #status {
+            font-size: 0.75rem;
+            color: #aaa;
+            margin-top: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Interactive Map</h1>
+    <p id="instructions">Click any waypoint to view its data. Click again or click elsewhere to close.</p>
+
+    <div id="map-container">
+        <img
+            id="map-img"
+            src="fast_and_frequent_transit_map-1.png"
+            alt="Map"
+        />
+    </div>
+
+    <p id="status">Connecting to database...</p>
+
+
+    <!-- ============================================================
+         STEP 1 — Firebase SDK scripts
+         No changes needed here. These load Firebase from Google's
+         servers and must come before your config below.
+    ============================================================ -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+    <script>
+        /* ============================================================
+           STEP 2 — Your Firebase config
+           How to get these values:
+             1. Go to https://console.firebase.google.com
+             2. Click "Add project" and follow the steps
+             3. Once inside your project, click the "</>" Web icon
+                to register a web app — give it any name
+             4. Firebase will show you a firebaseConfig object.
+                Copy each value from it and paste below.
+        ============================================================ */
+        const firebaseConfig = {
+            apiKey:            "PASTE_YOUR_apiKey_HERE",
+            authDomain:        "PASTE_YOUR_authDomain_HERE",
+            databaseURL:       "PASTE_YOUR_databaseURL_HERE",
+            projectId:         "PASTE_YOUR_projectId_HERE",
+            storageBucket:     "PASTE_YOUR_storageBucket_HERE",
+            messagingSenderId: "PASTE_YOUR_messagingSenderId_HERE",
+            appId:             "PASTE_YOUR_appId_HERE",
+        };
+
+        /* ============================================================
+           STEP 3 — Enable Realtime Database in Firebase console
+             1. In the left sidebar go to Build → Realtime Database
+             2. Click "Create Database"
+             3. Choose any region
+             4. Select "Start in test mode" (allows all reads & writes)
+             5. Your databaseURL will look like:
+                https://your-project-id-default-rtdb.firebaseio.com
+                Paste that as the databaseURL value above.
+        ============================================================ */
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        /* ============================================================
+           WAYPOINTS CONFIGURATION
+           Add or remove waypoints here as needed.
+           x/y are positions as a percentage of the image size.
+           value/value2 are the starting scores — Firebase will
+           override these with stored values after the first run.
+        ============================================================ */
+        const waypoints = [
+            { id: 1, name: "Lougheed",   x: 66.15, y: 39,   value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
+            { id: 2, name: "Burquitlam", x: 69.9,  y: 34.2, value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
+        ];
+
+        const container = document.getElementById('map-container');
+        const statusEl  = document.getElementById('status');
+        let activeId = null;
+        let popupEl  = null;
+
+        function formatNumber(n) {
+            return n.toLocaleString();
+        }
+
+        function updatePinColor(wp) {
+            const pin = document.querySelector(`.waypoint[data-id="${wp.id}"] .waypoint-pin`);
+            if (!pin) return;
+            if (wp.value > wp.value2) {
+                pin.style.background  = '#cc2222';
+                pin.style.borderColor = '#ffaaaa';
+            } else if (wp.value2 > wp.value) {
+                pin.style.background  = '#1a5fcc';
+                pin.style.borderColor = '#aac4ff';
+            } else {
+                pin.style.background  = '#888';
+                pin.style.borderColor = '#ccc';
+            }
+        }
+
+        function removePopup() {
+            if (popupEl) { popupEl.remove(); popupEl = null; }
+            document.querySelectorAll('.waypoint').forEach(w => w.classList.remove('active'));
+            activeId = null;
+        }
+
+        function renderPopup(popup, wp) {
+            const redClass  = wp.value  > wp.value2 ? 'num-red'  : 'num-gray';
+            const blueClass = wp.value2 > wp.value  ? 'num-blue' : 'num-gray';
+
+            popup.innerHTML = `
+                <div class="popup-name">${wp.name}</div>
+                <div class="popup-row">
+                    <div class="popup-col">
+                        <button class="adj-btn" data-field="value" data-dir="1">▲</button>
+                        <div class="popup-number ${redClass}">${formatNumber(wp.value)}</div>
+                        <button class="adj-btn" data-field="value" data-dir="-1">▼</button>
+                        <div class="popup-unit">${wp.unit}</div>
+                    </div>
+                    <div class="popup-divider"></div>
+                    <div class="popup-col">
+                        <button class="adj-btn" data-field="value2" data-dir="1">▲</button>
+                        <div class="popup-number ${blueClass}">${formatNumber(wp.value2)}</div>
+                        <button class="adj-btn" data-field="value2" data-dir="-1">▼</button>
+                        <div class="popup-unit">${wp.unit2}</div>
+                    </div>
+                </div>
+                <div class="popup-arrow"></div>
+            `;
+
+            popup.querySelectorAll('.adj-btn').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    const field    = btn.dataset.field;
+                    const newValue = wp[field] + parseInt(btn.dataset.dir);
+
+                    /* Write to Firebase. Firebase broadcasts the change
+                       to all connected users, which triggers the onValue
+                       listener below and updates everyone's screen. */
+                    db.ref(`waypoints/${wp.id}/${field}`).set(newValue);
+                });
+            });
+        }
+
+        function showPopup(wp, pinEl) {
+            removePopup();
+            activeId = wp.id;
+            pinEl.classList.add('active');
+
+            const popup = document.createElement('div');
+            popup.className  = 'popup';
+            popup.style.left = wp.x + '%';
+            popup.style.top  = wp.y + '%';
+
+            renderPopup(popup, wp);
+            container.appendChild(popup);
+            popupEl = popup;
+        }
+
+        /* ── Build pins & subscribe to Firebase for each waypoint ── */
+        waypoints.forEach(wp => {
+            const el = document.createElement('div');
+            el.className = 'waypoint';
+            el.style.left = wp.x + '%';
+            el.style.top  = wp.y + '%';
+            el.setAttribute('data-id', wp.id);
+            el.setAttribute('title', wp.name);
+            el.innerHTML = `<div class="waypoint-pin"><div class="waypoint-pin-inner"></div></div>`;
+
+            el.addEventListener('click', e => {
+                e.stopPropagation();
+                if (activeId === wp.id) { removePopup(); return; }
+                showPopup(wp, el);
+            });
+
+            container.appendChild(el);
+            updatePinColor(wp);
+
+            /* Listen for changes to this waypoint in Firebase.
+               onValue fires immediately with the current stored value,
+               then again in real time whenever anyone changes it.
+               This is what keeps all users in sync automatically. */
+            db.ref(`waypoints/${wp.id}`).on('value', snapshot => {
+                const data = snapshot.val();
+
+                if (data) {
+                    /* Use the values stored in Firebase */
+                    wp.value  = data.value  ?? wp.value;
+                    wp.value2 = data.value2 ?? wp.value2;
+                } else {
+                    /* First ever run — nothing stored yet, so write
+                       the default starting values defined above */
+                    db.ref(`waypoints/${wp.id}`).set({
+                        value:  wp.value,
+                        value2: wp.value2,
+                    });
+                }
+
+                /* If this waypoint's popup is open, re-render it */
+                if (popupEl && activeId === wp.id) {
+                    renderPopup(popupEl, wp);
+                }
+
+                updatePinColor(wp);
+                statusEl.textContent = 'Connected — numbers sync live for all users.';
+
+            }, error => {
+                statusEl.textContent = 'Database error — check your Firebase config in the code.';
+                console.error(error);
+            });
+        });
+
+        document.addEventListener('click', removePopup);
+    </script>
+
+</body>
+</html>

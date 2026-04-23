@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GitHub Pages · Live</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,300&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f0e;
+      --surface: #151918;
+      --border: #2a2f2d;
+      --green: #5aff8c;
+      --green-dim: #1e4a2f;
+      --text: #d4dbd6;
+      --muted: #5a6660;
+      --white: #f0f5f2;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      overflow: hidden;
+    }
+
+    /* Animated grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.4;
+      z-index: 0;
+      animation: gridPan 20s linear infinite;
+    }
+
+    @keyframes gridPan {
+      from { background-position: 0 0; }
+      to   { background-position: 48px 48px; }
+    }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3rem 3.5rem;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 0 80px -20px rgba(90,255,140,0.08);
+      animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--green); }
+      50%       { opacity: 0.5; box-shadow: 0 0 4px var(--green); }
+    }
+
+    .status-label {
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--green);
+    }
+
+    h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    h1 em {
+      font-style: italic;
+      font-weight: 300;
+      color: var(--green);
+    }
+
+    .subtitle {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+    }
+
+    .checks {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      font-size: 0.8rem;
+      color: var(--text);
+      opacity: 0;
+      animation: fadeIn 0.4s ease forwards;
+    }
+
+    .check-item:nth-child(1) { animation-delay: 0.5s; }
+    .check-item:nth-child(2) { animation-delay: 0.75s; }
+    .check-item:nth-child(3) { animation-delay: 1.0s; }
+    .check-item:nth-child(4) { animation-delay: 1.25s; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .check-icon {
+      flex-shrink: 0;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--green-dim);
+      display: grid;
+      place-items: center;
+      font-size: 0.7rem;
+      color: var(--green);
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .meta-item label {
+      display: block;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+
+    .meta-item span {
+      font-size: 0.8rem;
+      color: var(--text);
+    }
+
+    #live-time { color: var(--green); }
+
+    footer {
+      position: relative;
+      z-index: 1;
+      margin-top: 1.5rem;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="status-row">
+      <span class="dot"></span>
+      <span class="status-label">Deployment confirmed</span>
+    </div>
+
+    <h1>Your site is <em>live.</em></h1>
+    <p class="subtitle">
+      GitHub Pages successfully served this file.<br>
+      HTML, CSS, and JavaScript are all working correctly.
+    </p>
+
+    <div class="checks">
+      <div class="check-item">
+        <span class="check-icon">✓</span>
+        HTML is rendering
+      </div>
+      <div class="check-item">
+        <span class="check-icon">✓</span>
+        CSS styles are loading
+      </div>
+      <div class="check-item">
+        <span class="check-icon">✓</span>
+        JavaScript is executing
+      </div>
+      <div class="check-item">
+        <span class="check-icon">✓</span>
+        Google Fonts are reachable
+      </div>
+    </div>
+
+    <hr class="divider"/>
+
+    <div class="meta">
+      <div class="meta-item">
+        <label>Current time</label>
+        <span id="live-time">—</span>
+      </div>
+      <div class="meta-item">
+        <label>User agent</label>
+        <span id="ua">—</span>
+      </div>
+      <div class="meta-item">
+        <label>Page loaded</label>
+        <span id="loaded-at">—</span>
+      </div>
+      <div class="meta-item">
+        <label>Viewport</label>
+        <span id="vp">—</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>edit index.html to start building your site</footer>
+
+  <script>
+    const fmt = d => d.toLocaleTimeString();
+    const loadedAt = new Date();
+    document.getElementById('loaded-at').textContent = fmt(loadedAt);
+    document.getElementById('ua').textContent = navigator.userAgent.split(' ').slice(-1)[0];
+    document.getElementById('vp').textContent = `${window.innerWidth} × ${window.innerHeight}`;
+    setInterval(() => {
+      document.getElementById('live-time').textContent = fmt(new Date());
+    }, 1000);
+  </script>
+</body>
+</html>
