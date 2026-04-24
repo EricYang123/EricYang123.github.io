@@ -16,8 +16,8 @@
 ============================================================
 */
 const waypoints = [
-    { id: 1, name: "Lougheed",   x: 66.15, y: 39.5,   value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
-    { id: 2, name: "Burquitlam", x: 69.9,  y: 34.8, value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
+    { id: 1, name: "Lougheed",   x: 66.15, y: 39.77,   value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
+    { id: 2, name: "Burquitlam", x: 69.9,  y: 35, value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
 ];
 
 const container = document.getElementById('map-container');
@@ -33,14 +33,11 @@ function updatePinColor(wp) {
     const pin = document.querySelector(`.waypoint[data-id="${wp.id}"] .waypoint-pin`);
     if (!pin) return;
     if (wp.value > wp.value2) {
-        pin.style.background  = '#cc2222';
-        pin.style.borderColor = '#ffaaaa';
+        pin.style.background = '#cc2222';
     } else if (wp.value2 > wp.value) {
-        pin.style.background  = '#1a5fcc';
-        pin.style.borderColor = '#aac4ff';
+        pin.style.background = '#1a5fcc';
     } else {
-        pin.style.background  = '#888';
-        pin.style.borderColor = '#ccc';
+        pin.style.background = '#888';
     }
 }
 

@@ -1,21 +1,33 @@
 :root{
-    --wp-size: 32px;
+    --wp-size: 24px;
     --wp-nudge: 0px;
+    --popup-scale: 1;
 }
 
 /* Smaller pins for tablets/phones */
-@media (max-width: 768px) {
+@media (max-width: 950px) {
     :root {
-        --wp-size: 20px;
-	--wp-nudge: -3px;
+        --wp-size: 10px;
+	--wp-nudge: 0px;
+	--popup-scale: 0.75;
+    }
+
+    .popup {
+        padding: 10px 12px 8px !important;
+        min-width: 160px !important;
+    }
+
+    .popup-number {
+        font-size: 22px !important;
     }
 }
 
 /* Even smaller for small phones */
 @media (max-width: 480px) {
     :root {
-        --wp-size: 16px;
-	--wp-nudge: -6px;
+        --wp-size: 5px;
+	--wp-nudge: 0px;
+	--popup-scale: 0.50;
     }
 }
 
@@ -74,7 +86,7 @@ h1 {
     position: absolute;
     width: var(--wp-size);
     height: var(--wp-size);
-    transform: translate(-50%, calc(-100% + var(--wp-nudge)));
+    transform: translate(-50%, -50%);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -83,27 +95,22 @@ h1 {
 }
 
 .waypoint-pin {
-    /* width: calc(var(--wp-size) * 0.875); */
-    /* height: calc(var(--wp-size) * 0.875); */
     width: 100%;
     height: 100%;
-    border-radius: 50% 50% 50% 0;
-    transform: rotate(-45deg);
-    background: #888;
-    border: 2px solid #ccc;
-    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    border-radius: 50%;
+    /* Keep the background color logic from your JS */
+    background: #888; 
+    /* Remove the border and shadow to make it a flat, solid circle */
+    border: none; 
+    box-shadow: none; 
+    transition: background 0.15s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
 .waypoint-pin-inner {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.5);
-    transform: rotate(45deg);
+    display: none;
 }
 
 /* ── Popup ── */
@@ -115,21 +122,24 @@ h1 {
     padding: 14px 18px 12px;
     min-width: 200px;
     z-index: 10;
-    /* transform: translate(-50%, calc(-100% - (var(--wp-size) * 0.4))); */
-    transform: translate(-50%, calc(-100% - var(--wp-size) - 5px));
+    /* Use the exact same math as the 'to' keyframe below */
+    transform: translate(-50%, calc(-100% - (var(--wp-size) / 2) - 4px)) scale(var(--popup-scale));
+    transform-origin: bottom center;
     box-shadow: 0 4px 16px rgba(0,0,0,0.12);
     pointer-events: auto;
-    animation: popup-in 0.15s ease;
+    animation: popup-in 0.15s ease forwards; /* Added 'forwards' to ensure it stays put */
 }
 
 @keyframes popup-in {
     from { 
         opacity: 0; 
-        transform: translate(-50%, calc(-100% - var(--wp-size) - 0px)); 
+        /* Increased the gap to 15px so it visibly slides down into position */
+        transform: translate(-50%, calc(-100% - (var(--wp-size) / 2) - 15px)) scale(calc(var(--popup-scale) * 0.8)); 
     }
-    to   { 
+    to { 
         opacity: 1; 
-        transform: translate(-50%, calc(-100% - var(--wp-size) - 5px)); 
+        /* The final resting position */
+        transform: translate(-50%, calc(-100% - (var(--wp-size) / 2) - 4px)) scale(var(--popup-scale)); 
     }
 }
 
