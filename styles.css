@@ -1,3 +1,21 @@
+:root{
+    --wp-size: 32px;
+}
+
+/* Smaller pins for tablets/phones */
+@media (max-width: 768px) {
+    :root {
+        --wp-size: 24px;
+    }
+}
+
+/* Even smaller for small phones */
+@media (max-width: 480px) {
+    :root {
+        --wp-size: 20px;
+    }
+}
+
 /* ── Reset & base ── */
 *, *::before, *::after {
     box-sizing: border-box;
@@ -51,9 +69,9 @@ h1 {
 /* ── Waypoint pins ── */
 .waypoint {
     position: absolute;
-    width: 32px;
-    height: 32px;
-    transform: translate(-50%, -50%);
+    width: var(--wp-size);
+    height: var(--wp-size);
+    transform: translate(-50%, -100%);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -62,8 +80,8 @@ h1 {
 }
 
 .waypoint-pin {
-    width: 28px;
-    height: 28px;
+    width: calc(var(--wp-size) * 0.875);
+    height: calc(var(--wp-size) * 0.875);
     border-radius: 50% 50% 50% 0;
     transform: rotate(-45deg);
     background: #888;
@@ -92,15 +110,22 @@ h1 {
     padding: 14px 18px 12px;
     min-width: 200px;
     z-index: 10;
-    transform: translate(-50%, calc(-100% - 22px));
+    /* transform: translate(-50%, calc(-100% - (var(--wp-size) * 0.4))); */
+    transform: translate(-50%, calc(-100% - var(--wp-size) - 10px));
     box-shadow: 0 4px 16px rgba(0,0,0,0.12);
     pointer-events: auto;
     animation: popup-in 0.15s ease;
 }
 
 @keyframes popup-in {
-    from { opacity: 0; transform: translate(-50%, calc(-100% - 14px)); }
-    to   { opacity: 1; transform: translate(-50%, calc(-100% - 22px)); }
+    from { 
+        opacity: 0; 
+        transform: translate(-50%, calc(-100% - var(--wp-size) - 2px)); 
+    }
+    to   { 
+        opacity: 1; 
+        transform: translate(-50%, calc(-100% - var(--wp-size) - 10px)); 
+    }
 }
 
 .popup-arrow {

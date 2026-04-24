@@ -16,8 +16,8 @@
 ============================================================
 */
 const waypoints = [
-    { id: 1, name: "Lougheed",   x: 66.15, y: 39,   value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
-    { id: 2, name: "Burquitlam", x: 69.9,  y: 34.2, value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
+    { id: 1, name: "Lougheed",   x: 66.15, y: 39.5,   value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
+    { id: 2, name: "Burquitlam", x: 69.9,  y: 34.8, value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
 ];
 
 const container = document.getElementById('map-container');
