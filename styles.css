@@ -1,18 +1,21 @@
 :root{
     --wp-size: 32px;
+    --wp-nudge: 0px;
 }
 
 /* Smaller pins for tablets/phones */
 @media (max-width: 768px) {
     :root {
-        --wp-size: 24px;
+        --wp-size: 20px;
+	--wp-nudge: -1px;
     }
 }
 
 /* Even smaller for small phones */
 @media (max-width: 480px) {
     :root {
-        --wp-size: 20px;
+        --wp-size: 16px;
+	--wp-nudge: -2px;
     }
 }
 
@@ -71,7 +74,7 @@ h1 {
     position: absolute;
     width: var(--wp-size);
     height: var(--wp-size);
-    transform: translate(-50%, -100%);
+    transform: translate(-50%, calc(-100% + var(--wp-nudge)));
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -80,12 +83,14 @@ h1 {
 }
 
 .waypoint-pin {
-    width: calc(var(--wp-size) * 0.875);
-    height: calc(var(--wp-size) * 0.875);
+    /* width: calc(var(--wp-size) * 0.875); */
+    /* height: calc(var(--wp-size) * 0.875); */
+    width: 100%;
+    height: 100%;
     border-radius: 50% 50% 50% 0;
     transform: rotate(-45deg);
     background: #888;
-    border: 2.5px solid #ccc;
+    border: 2px solid #ccc;
     transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
     display: flex;
     align-items: center;
@@ -111,7 +116,7 @@ h1 {
     min-width: 200px;
     z-index: 10;
     /* transform: translate(-50%, calc(-100% - (var(--wp-size) * 0.4))); */
-    transform: translate(-50%, calc(-100% - var(--wp-size) - 10px));
+    transform: translate(-50%, calc(-100% - var(--wp-size) - 5px));
     box-shadow: 0 4px 16px rgba(0,0,0,0.12);
     pointer-events: auto;
     animation: popup-in 0.15s ease;
@@ -120,11 +125,11 @@ h1 {
 @keyframes popup-in {
     from { 
         opacity: 0; 
-        transform: translate(-50%, calc(-100% - var(--wp-size) - 2px)); 
+        transform: translate(-50%, calc(-100% - var(--wp-size) - 0px)); 
     }
     to   { 
         opacity: 1; 
-        transform: translate(-50%, calc(-100% - var(--wp-size) - 10px)); 
+        transform: translate(-50%, calc(-100% - var(--wp-size) - 5px)); 
     }
 }
 
