@@ -1,7 +1,16 @@
 :root{
-    --wp-size: 24px;
+    --wp-size: 20px;
     --wp-nudge: 0px;
     --popup-scale: 1;
+
+    --dash-bottom: 20px;
+    --dash-right: 20px;
+    --dash-padding: 20px;
+    --dash-gap: 12px;
+    --panel-gap: 6px;
+    --panel-padding: 25px;
+    --dash-font-size: 25px;
+    --input-width: 60px;
 }
 
 /* Smaller pins for tablets/phones */
@@ -10,6 +19,11 @@
         --wp-size: 10px;
 	--wp-nudge: 0px;
 	--popup-scale: 0.75;
+	margin-top: 15vh;
+	--dash-bottom: 10px;
+        --dash-right: 10px;
+        --dash-padding: 8px;
+        --dash-font-size: 12px;
     }
 
     .popup {
@@ -25,9 +39,18 @@
 /* Even smaller for small phones */
 @media (max-width: 480px) {
     :root {
-        --wp-size: 5px;
+        --wp-size: 4px;
 	--wp-nudge: 0px;
 	--popup-scale: 0.50;
+	margin-top: 12vh;
+	--dash-bottom: 2px;
+        --dash-right: 2px;
+        --dash-padding: 6px;
+        --dash-gap: 12px;
+        --panel-gap: 6px;
+        --panel-padding: 5px;
+        --dash-font-size: 9px;
+        --input-width: 30px;
     }
 }
 
@@ -46,7 +69,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 2rem 1rem;
+    padding: 1rem 1rem;
 }
 
 h1 {
@@ -101,12 +124,19 @@ h1 {
     /* Keep the background color logic from your JS */
     background: #888; 
     /* Remove the border and shadow to make it a flat, solid circle */
-    border: none; 
-    box-shadow: none; 
+    border: 1.5px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     transition: background 0.15s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: calc(var(--wp-size) * 0.8); /* Scales font with the pin size */
+    line-height: 0;
+    padding-bottom: 0.5px;
+    pointer-events: none;
+    text-align: center;
 }
 
 .waypoint-pin-inner {
@@ -228,3 +258,61 @@ h1 {
 .num-red  { color: #cc2222; }
 .num-blue { color: #1a5fcc; }
 .num-gray { color: #888; }
+
+/* ── Team Dashboard ── */
+#team-dashboard {
+    position: absolute;
+    bottom: var(--dash-bottom);
+    right: var(--dash-right);
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 8px;
+    padding: var(--dash-padding);
+    display: flex;
+    flex-direction: row;
+    gap: var(--dash-gap);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 15;
+    /* Ensure the user can click into the input fields */
+    pointer-events: auto; 
+}
+
+.team-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--panel-gap);
+    padding-left: var(--panel-padding);
+}
+
+.red-panel { border-left: 4px solid #cc2222; }
+.blue-panel { border-left: 4px solid #1a5fcc; }
+
+.dash-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    font-size: var(--dash-font-size);
+    color: #333;
+}
+
+.dash-row input {
+    width: var(--input-width);
+    padding: 4px 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: var(--dash-font-size);
+    text-align: right;
+    font-weight: normal;
+}
+
+/* Remove up/down arrows from number inputs */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield; /* Firefox */
+}

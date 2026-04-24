@@ -8,15 +8,23 @@
 </head>
 <body>
 
-    <h1>Interactive Map</h1>
-    <p id="instructions">Click any waypoint to view its data. Click again or click elsewhere to close.</p>
-
     <div id="map-container">
         <img
             id="map-img"
             src="fast_and_frequent_transit_map-1.png"
             alt="Map"
         />
+
+	<div id="team-dashboard">
+            <div class="team-panel red-panel">
+                <div class="dash-row"><span>Stations:</span> <strong id="red-controlled">0</strong></div>
+                <div class="dash-row"><span>Coins:</span> <input type="number" id="red-pool" value="100" /></div>
+            </div>
+            <div class="team-panel blue-panel">
+		<div class="dash-row"><span>Stations:</span> <strong id="blue-controlled">0</strong></div>
+                <div class="dash-row"><span>Coins:</span> <input type="number" id="blue-pool" value="100" /></div>
+            </div>
+        </div>
     </div>
 
     <script src="map.js"></script>

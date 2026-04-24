@@ -16,8 +16,13 @@
 ============================================================
 */
 const waypoints = [
-    { id: 1, name: "Lougheed",   x: 66.15, y: 39.77,   value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
+    { id: 1, name: "Lougheed Town Centre",   x: 66.15, y: 39.77,   value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
     { id: 2, name: "Burquitlam", x: 69.9,  y: 35, value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
+    { id: 3, name: "Moody Centre", x: 72.65,  y: 30.6, value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
+    { id: 4, name: "Inlet Centre", x: 76,  y: 30.6, value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
+    { id: 5, name: "Coquitlam Central", x: 79.3,  y: 30, value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
+    { id: 6, name: "Lincoln", x: 79.6,  y: 26.2, value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
+    { id: 7, name: "Lafarge Lake-Douglas", x: 79.6,  y: 21.7, value: 0, value2: 0, unit: "Red Team", unit2: "Blue Team" },
 ];
 
 const container = document.getElementById('map-container');
@@ -32,6 +37,8 @@ function formatNumber(n) {
 function updatePinColor(wp) {
     const pin = document.querySelector(`.waypoint[data-id="${wp.id}"] .waypoint-pin`);
     if (!pin) return;
+    const diff = Math.abs(wp.value - wp.value2);
+    pin.textContent = (diff > 0) ? diff : "";
     if (wp.value > wp.value2) {
         pin.style.background = '#cc2222';
     } else if (wp.value2 > wp.value) {
@@ -56,6 +63,10 @@ function showPopup(wp, pinEl) {
     popup.className  = 'popup';
     popup.style.left = wp.x + '%';
     popup.style.top  = wp.y + '%';
+
+    popup.addEventListener('click', e => {
+	e.stopPropagation();
+    });
 
     function render() {
         /* Pick number colors based on who's winning */
@@ -84,12 +95,32 @@ function showPopup(wp, pinEl) {
             <div class="popup-arrow"></div>
         `;
 
-        popup.querySelectorAll('.adj-btn').forEach(btn => {
+	popup.querySelectorAll('.adj-btn').forEach(btn => {
             btn.addEventListener('click', e => {
                 e.stopPropagation();
-                wp[btn.dataset.field] += parseInt(btn.dataset.dir);
+                
+                // Get the direction (+1 or -1)
+                const dir = parseInt(btn.dataset.dir);
+                
+                // Update the waypoint's score
+                wp[btn.dataset.field] += dir;
+                
+                // --- NEW: Update the Text Box Pools ---
+                if (btn.dataset.field === 'value') {
+                    // Red Team pool logic
+                    const redPool = document.getElementById('red-pool');
+                    // We subtract `dir`. If dir is 1 (Up), it subtracts 1. If dir is -1 (Down), it adds 1.
+                    if (redPool) redPool.value = parseInt(redPool.value || 0) - dir;
+                } else if (btn.dataset.field === 'value2') {
+                    // Blue Team pool logic
+                    const bluePool = document.getElementById('blue-pool');
+                    if (bluePool) bluePool.value = parseInt(bluePool.value || 0) - dir;
+                }
+
+                // Re-render popup, pin, and dashboard
                 render();
-                updatePinColor(wp);
+                updatePinColor(wp);  // Or updatePinDisplay(wp) if you used the previous code
+                updateDashboard();
             });
         });
     }
@@ -107,7 +138,7 @@ waypoints.forEach(wp => {
     el.style.top  = wp.y + '%';
     el.setAttribute('data-id', wp.id);
     el.setAttribute('title', wp.name);
-    el.innerHTML = `<div class="waypoint-pin"><div class="waypoint-pin-inner"></div></div>`;
+    el.innerHTML = `<div class="waypoint-pin"></div>`;
 
     /* Set initial pin color */
     updatePinColor(wp);
@@ -123,3 +154,24 @@ waypoints.forEach(wp => {
 
 /* Close popup when clicking outside */
 document.addEventListener('click', removePopup);
+
+function updateDashboard() {
+    let redCount = 0;
+    let blueCount = 0;
+    
+    // Count up who controls what
+    waypoints.forEach(wp => {
+        if (wp.value > wp.value2) redCount++;
+        else if (wp.value2 > wp.value) blueCount++;
+    });
+    
+    // Update the text on the UI
+    const redCtrl = document.getElementById('red-controlled');
+    const blueCtrl = document.getElementById('blue-controlled');
+    
+    if (redCtrl) redCtrl.textContent = redCount;
+    if (blueCtrl) blueCtrl.textContent = blueCount;
+}
+
+/* Initialize the dashboard counts on load */
+updateDashboard();
